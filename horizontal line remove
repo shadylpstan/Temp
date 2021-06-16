@@ -1,0 +1,245 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import cv2\n",
+    "import pytesseract\n",
+    "from PyPDF2 import PdfFileReader, PdfFileMerger\n",
+    "import shutil\n",
+    "import pdf2image\n",
+    "import os\n",
+    "import ntpath\n",
+    "import json"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with open(\"./configuration.json\", encoding=\"utf-8\") as file:\n",
+    "    data = json.load(file)\n",
+    "    pop_path = data['pop_path']\n",
+    "    pytesseract.pytesseract.tesseract_cmd = data['tessaract_dir'] + \"\\\\tesseract.exe\"\n",
+    "    tessdata_dir_config = '--psm 11 --tessdata-dir \"' + data['tessaract_dir'] + '/tessdata\"'"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'C:\\\\Deepankar\\\\Python\\\\poppler-0.68.0\\\\bin'"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "pop_path"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def image_conversion(in_path,image_path) :\n",
+    "    pil_images = pdf2image.convert_from_path(in_path,fmt='.jpg',dpi=300,poppler_path=pop_path)\n",
+    "    count=0\n",
+    "    for image in pil_images:\n",
+    "        image.save(image_path+'/con_'+str(count)+'.jpg')\n",
+    "        count+=1\n",
+    "def create_pdfs(img_fol,out_fol):\n",
+    "    for img_name in os.listdir(img_fol):\n",
+    "        im_path = img_fol+'/'+img_name\n",
+    "        print(im_path)\n",
+    "        img = cv2.imread(im_path,1)\n",
+    "        result = pytesseract.image_to_pdf_or_hocr(img,config=tessdata_dir_config)\n",
+    "        print(\"###########\")\n",
+    "        #print(pytesseract.image_to_string(img,config=tessdata_dir_config))\n",
+    "        file_name = out_fol+'/searchable'+img_name+'.pdf'\n",
+    "        with open(file_name,'wb') as f:\n",
+    "            f.write(bytearray(result))\n",
+    "def merge_pdfs(inp_fol,out_fol,name):\n",
+    "    output = PdfFileMerger()\n",
+    "    li = sorted(os.listdir(inp_fol), key=lambda x: (len(x), x))\n",
+    "    for pdf_name in li:\n",
+    "        pdf_file = PdfFileReader(inp_fol+\"/\"+pdf_name)\n",
+    "        output.append(pdf_file)\n",
+    "    file_name=out_fol+'/'+name\n",
+    "    output.write(file_name)\n",
+    "    return file_name"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini12.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini13.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini14.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini17.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini18.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini19.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini20.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini20_2.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini_duplicate_2.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/gemini_duplicate_3.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med11.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med12.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med13.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med14.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med5.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med6.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med7.jpg_lines_removed.jpg\n",
+      "###########\n",
+      "C://Users//Deepankar158329//Documents//line_removal_samples/med9.jpg_lines_removed.jpg\n",
+      "###########\n"
+     ]
+    }
+   ],
+   "source": [
+    "create_pdfs(r\"C://Users//Deepankar158329//Documents//line_removal_samples\",'C://Users//Deepankar158329//Documents//line_removal_samples_pdfs')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "gemini12.jpg is processed\n",
+      "gemini13.jpg is processed\n",
+      "gemini14.jpg is processed\n",
+      "gemini17.jpg is processed\n",
+      "gemini18.jpg is processed\n",
+      "gemini19.jpg is processed\n",
+      "gemini20.jpg is processed\n",
+      "gemini20_2.jpg is processed\n",
+      "gemini_duplicate_2.jpg is processed\n",
+      "gemini_duplicate_3.jpg is processed\n",
+      "med11.jpg is processed\n",
+      "med12.jpg is processed\n",
+      "med13.jpg is processed\n",
+      "med14.jpg is processed\n",
+      "med5.jpg is processed\n",
+      "med6.jpg is processed\n",
+      "med7.jpg is processed\n",
+      "med9.jpg is processed\n"
+     ]
+    }
+   ],
+   "source": [
+    "for file in os.listdir(r\"C://Users//Deepankar158329//Documents//test//\"):\n",
+    "    image = cv2.imread(r\"C://Users//Deepankar158329//Documents//test//\" + file)\n",
+    "    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)\n",
+    "    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]\n",
+    "\n",
+    "    # Remove horizontal\n",
+    "    horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25,1))\n",
+    "    detected_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=5)\n",
+    "    cnts = cv2.findContours(detected_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)\n",
+    "    cnts = cnts[0] if len(cnts) == 2 else cnts[1]\n",
+    "    for c in cnts:\n",
+    "        cv2.drawContours(image, [c], -1, (255,255,255), 10)\n",
+    "\n",
+    "    # Repair image\n",
+    "    repair_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,1))\n",
+    "    result = 255 - cv2.morphologyEx(255 - image, cv2.MORPH_CLOSE, repair_kernel, iterations=3)\n",
+    "    cv2.imwrite(\"./line_removal_samples/\" + file + \"_lines_removed.jpg\", result)\n",
+    "    print(file + \" is processed\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# cv2.imwrite(\"lines_removed.jpg\", result)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python v2_code",
+   "language": "python",
+   "name": "v2_code"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
